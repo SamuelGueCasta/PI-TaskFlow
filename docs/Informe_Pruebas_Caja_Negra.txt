@@ -1,0 +1,241 @@
+3.4. INFORME DE PRUEBAS DE CAJA NEGRA
+
+Este informe recoge las pruebas de caja negra realizadas sobre TaskFlow.
+A diferencia de las pruebas de caja blanca, aquí no se analiza la
+estructura interna del código, sino el comportamiento del sistema desde
+fuera: lo que ve el usuario en la aplicación y lo que devuelve la API
+ante cada petición. Las pruebas abarcan el conjunto formado por el
+frontend en Flutter, el backend en FastAPI y la base de datos MySQL.
+
+El objetivo es comprobar que las funcionalidades visibles para el
+usuario y los servicios ofrecidos por la API responden según lo
+esperado ante entradas correctas y ante entradas erróneas, y dejar
+constancia del resultado de cada caso.
+
+
+3.4.1. Entorno y metodología
+
+Las pruebas se dividen en dos bloques, tal como recoge el plan de
+pruebas de caja negra:
+
+  - Pruebas funcionales desde la aplicación TaskFlow, ejecutadas a mano
+    sobre la interfaz de Flutter con los dos perfiles del sistema:
+    administrador y usuario estándar.
+  - Pruebas de la API REST mediante Postman, enviando peticiones HTTP
+    directamente al backend y analizando el código de estado, el cuerpo
+    de la respuesta y el efecto sobre la base de datos.
+
+Para ejecutar las pruebas se parte de un servidor en funcionamiento y de
+una base de datos con datos de ejemplo. Se emplean dos cuentas:
+
+  +---------------+----------------------------+------------+----------+
+  | Perfil        | Correo                     | Contraseña | Rol      |
+  +---------------+----------------------------+------------+----------+
+  | Administrador | admin@taskflow.com         | (de prueba)| admin    |
+  | Usuario       | empleado@taskflow.com      | (de prueba)| usuario  |
+  +---------------+----------------------------+------------+----------+
+
+Cada prueba indica la acción realizada, el resultado esperado y el
+resultado obtenido. En las pruebas que requieren evidencia visual se
+señala el punto donde debe insertarse la captura correspondiente.
+
+
+3.4.2. Resumen de resultados
+
+Se ejecutaron 45 casos de prueba repartidos en los tres apartados
+siguientes. Todos resultaron correctos.
+
+  +-------------------------------------------+-------+----------+
+  | Bloque                                    | Casos | Estado   |
+  +-------------------------------------------+-------+----------+
+  | Pruebas funcionales (administrador)       |  11   | CORRECTO |
+  | Pruebas funcionales (usuario estándar)    |  10   | CORRECTO |
+  | Pruebas de API mediante Postman           |  18   | CORRECTO |
+  | Pruebas generales de errores              |   6   | CORRECTO |
+  +-------------------------------------------+-------+----------+
+  | TOTAL                                     |  45   | CORRECTO |
+  +-------------------------------------------+-------+----------+
+
+
+3.4.3. Pruebas funcionales desde la aplicación
+
+Perfil administrador
+
+Estas pruebas comprueban el comportamiento de la aplicación desde la
+cuenta de administrador, que dispone de acceso completo a la gestión de
+usuarios, proyectos y tareas.
+
+  +---------+--------------------------------------------+-----------------------------+----------+
+  | ID      | Descripción                                | Esperado                    | Estado   |
+  +---------+--------------------------------------------+-----------------------------+----------+
+  | CN-FA01 | Inicio de sesión como administrador        | Acceso al panel de admin    | CORRECTO |
+  | CN-FA02 | Visualización del resumen general de tareas| Lista y contadores correctos| CORRECTO |
+  | CN-FA03 | Creación de un usuario                      | Usuario creado y visible    | CORRECTO |
+  | CN-FA04 | Edición de un usuario                       | Datos actualizados          | CORRECTO |
+  | CN-FA05 | Eliminación de un usuario                   | Usuario eliminado           | CORRECTO |
+  | CN-FA06 | Validación de campos obligatorios           | Aviso, no se envía el form  | CORRECTO |
+  | CN-FA07 | Creación y edición de un proyecto           | Proyecto creado y editado   | CORRECTO |
+  | CN-FA08 | Validación de fechas en proyectos           | Rechazo de fecha incorrecta | CORRECTO |
+  | CN-FA09 | Creación y edición de una tarea             | Tarea creada y editada      | CORRECTO |
+  | CN-FA10 | Asignación de usuarios a una tarea          | Usuario asignado a la tarea | CORRECTO |
+  | CN-FA11 | Bloqueo al eliminar proyecto con tareas     | Aviso, no se elimina        | CORRECTO |
+  +---------+--------------------------------------------+-----------------------------+----------+
+
+  [CAPTURA CN-FA01: Pantalla principal del administrador tras iniciar sesión]
+  [CAPTURA CN-FA02: Resumen general de tareas en el panel de administración]
+  [CAPTURA CN-FA03: Formulario de creación de usuario con los datos rellenados]
+  [CAPTURA CN-FA05: Lista de usuarios antes y después de eliminar uno]
+  [CAPTURA CN-FA06: Aviso de campos obligatorios al dejar un campo vacío]
+  [CAPTURA CN-FA08: Aviso al introducir una fecha de fin anterior a la de inicio]
+  [CAPTURA CN-FA10: Tarea con los usuarios asignados visibles]
+  [CAPTURA CN-FA11: Aviso de bloqueo al intentar eliminar un proyecto con tareas activas]
+
+
+Perfil usuario estándar
+
+Estas pruebas comprueban el comportamiento de la aplicación desde una
+cuenta de usuario estándar, que solo puede ver y trabajar sobre las
+tareas en las que está asignado.
+
+  +---------+--------------------------------------------+-----------------------------+----------+
+  | ID      | Descripción                                | Esperado                    | Estado   |
+  +---------+--------------------------------------------+-----------------------------+----------+
+  | CN-FU01 | Inicio de sesión como usuario estándar      | Acceso a su pantalla        | CORRECTO |
+  | CN-FU02 | Visualización solo de tareas asignadas      | Solo aparecen las suyas     | CORRECTO |
+  | CN-FU03 | Consulta del detalle de una tarea           | Detalle correcto            | CORRECTO |
+  | CN-FU04 | Filtrado de tareas por estado y prioridad   | Lista filtrada correcta     | CORRECTO |
+  | CN-FU05 | Cambio de estado de una tarea asignada      | Estado actualizado          | CORRECTO |
+  | CN-FU06 | Creación y actualización de subtareas       | Subtarea creada y editada   | CORRECTO |
+  | CN-FU07 | Bloqueo al finalizar tarea con subtareas    | Aviso, no se finaliza       | CORRECTO |
+  | CN-FU08 | Cambio de contraseña desde la cuenta        | Contraseña actualizada      | CORRECTO |
+  | CN-FU09 | Subida de foto de perfil                    | Foto actualizada            | CORRECTO |
+  | CN-FU10 | Cierre de sesión                            | Vuelta a la pantalla login  | CORRECTO |
+  +---------+--------------------------------------------+-----------------------------+----------+
+
+  [CAPTURA CN-FU01: Pantalla principal del usuario estándar tras iniciar sesión]
+  [CAPTURA CN-FU02: Listado de tareas mostrando únicamente las asignadas al usuario]
+  [CAPTURA CN-FU03: Detalle de una tarea asignada]
+  [CAPTURA CN-FU04: Tareas filtradas por estado y prioridad]
+  [CAPTURA CN-FU05: Tarea con el estado cambiado por el usuario]
+  [CAPTURA CN-FU06: Subtarea creada y marcada como completada]
+  [CAPTURA CN-FU07: Aviso al intentar finalizar una tarea con subtareas pendientes]
+  [CAPTURA CN-FU08: Pantalla de cambio de contraseña con confirmación]
+  [CAPTURA CN-FU09: Perfil del usuario con la nueva foto]
+
+
+3.4.4. Pruebas de API mediante Postman
+
+Estas pruebas envían peticiones HTTP directamente al backend y analizan
+la respuesta sin pasar por la interfaz. Se agrupan por módulo. En la
+columna Esperado se indica el código de estado HTTP previsto.
+
+Autenticación
+
+  +--------+--------------------------------------------+----------+----------+----------+
+  | ID     | Descripción                                | Esperado | Obtenido | Estado   |
+  +--------+--------------------------------------------+----------+----------+----------+
+  | CN-A01 | Login con credenciales válidas             | 200+token| 200+token| CORRECTO |
+  | CN-A02 | Login con contraseña incorrecta            |   401    |   401    | CORRECTO |
+  | CN-A03 | Login con correo inexistente               |   401    |   401    | CORRECTO |
+  | CN-A04 | Petición protegida sin token               |   401    |   401    | CORRECTO |
+  | CN-A05 | Resetear contraseña con token inexistente  |   400    |   400    | CORRECTO |
+  +--------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-A01: Petición POST /auth/login en Postman con respuesta 200 y token]
+  [CAPTURA CN-A02: Petición de login con contraseña incorrecta y respuesta 401]
+  [CAPTURA CN-A04: Petición a un endpoint protegido sin token con respuesta 401]
+
+Usuarios
+
+  +--------+--------------------------------------------+----------+----------+----------+
+  | ID     | Descripción                                | Esperado | Obtenido | Estado   |
+  +--------+--------------------------------------------+----------+----------+----------+
+  | CN-U01 | Listar usuarios como administrador         |   200    |   200    | CORRECTO |
+  | CN-U02 | Listar usuarios como usuario estándar      |   403    |   403    | CORRECTO |
+  | CN-U03 | Crear usuario con correo duplicado         |   400    |   400    | CORRECTO |
+  | CN-U04 | Eliminar usuario inexistente               |   404    |   404    | CORRECTO |
+  +--------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-U01: GET /usuarios/ con token de administrador y respuesta 200]
+  [CAPTURA CN-U02: GET /usuarios/ con token de usuario estándar y respuesta 403]
+  [CAPTURA CN-U03: POST /usuarios/ con correo duplicado y respuesta 400]
+
+Proyectos
+
+  +--------+--------------------------------------------+----------+----------+----------+
+  | ID     | Descripción                                | Esperado | Obtenido | Estado   |
+  +--------+--------------------------------------------+----------+----------+----------+
+  | CN-P01 | Crear proyecto con fechas válidas          |   200    |   200    | CORRECTO |
+  | CN-P02 | Crear proyecto con fecha fin anterior      |   400    |   400    | CORRECTO |
+  | CN-P03 | Eliminar proyecto con tareas activas       |   400    |   400    | CORRECTO |
+  | CN-P04 | Obtener proyecto inexistente               |   404    |   404    | CORRECTO |
+  +--------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-P02: POST /proyectos/ con fecha de fin anterior a la de inicio y respuesta 400]
+  [CAPTURA CN-P03: DELETE de un proyecto con tareas activas y respuesta 400]
+
+Tareas
+
+  +--------+--------------------------------------------+----------+----------+----------+
+  | ID     | Descripción                                | Esperado | Obtenido | Estado   |
+  +--------+--------------------------------------------+----------+----------+----------+
+  | CN-T01 | Crear tarea con fecha límite pasada        |   400    |   400    | CORRECTO |
+  | CN-T02 | Crear tarea con proyecto inexistente       |   404    |   404    | CORRECTO |
+  | CN-T03 | Finalizar tarea con subtareas pendientes   |   400    |   400    | CORRECTO |
+  | CN-T04 | Asignar un usuario ya asignado             |   400    |   400    | CORRECTO |
+  | CN-T05 | Desasignar un usuario no asignado          |   404    |   404    | CORRECTO |
+  +--------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-T01: POST /tareas/ con fecha límite pasada y respuesta 400]
+  [CAPTURA CN-T03: PUT /tareas/{id} para finalizar con subtareas pendientes y respuesta 400]
+
+Subtareas
+
+  +--------+--------------------------------------------+----------+----------+----------+
+  | ID     | Descripción                                | Esperado | Obtenido | Estado   |
+  +--------+--------------------------------------------+----------+----------+----------+
+  | CN-S01 | Crear subtarea en una tarea existente      |   200    |   200    | CORRECTO |
+  | CN-S02 | Crear subtarea en tarea no asignada        |   403    |   403    | CORRECTO |
+  +--------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-S01: POST /subtareas/ con respuesta 200 y la subtarea creada]
+  [CAPTURA CN-S02: POST /subtareas/ desde un usuario no asignado y respuesta 403]
+
+
+3.4.5. Pruebas generales de errores y validaciones
+
+Este bloque agrupa comprobaciones transversales sobre el manejo de
+errores y la validación de datos, tanto desde la aplicación como desde
+Postman.
+
+  +--------+--------------------------------------------+-----------------------------+----------+
+  | ID     | Descripción                                | Esperado                    | Estado   |
+  +--------+--------------------------------------------+-----------------------------+----------+
+  | CN-G01 | Acceso con credenciales incorrectas         | Mensaje de error, sin acceso| CORRECTO |
+  | CN-G02 | Envío de formulario con campos vacíos       | Aviso de validación         | CORRECTO |
+  | CN-G03 | Correo electrónico con formato incorrecto   | Aviso de formato no válido  | CORRECTO |
+  | CN-G04 | Introducción de fechas no válidas           | Aviso, no se guarda         | CORRECTO |
+  | CN-G05 | Operación no permitida según el rol         | Bloqueo de la acción (403)  | CORRECTO |
+  | CN-G06 | Comportamiento ante fallo de conexión       | Mensaje de error controlado | CORRECTO |
+  +--------+--------------------------------------------+-----------------------------+----------+
+
+  [CAPTURA CN-G01: Mensaje de error en el login con credenciales incorrectas]
+  [CAPTURA CN-G02: Aviso de validación al enviar un formulario con campos vacíos]
+  [CAPTURA CN-G03: Aviso al introducir un correo con formato no válido]
+  [CAPTURA CN-G06: Mensaje mostrado por la aplicación cuando no hay conexión con el servidor]
+
+
+3.4.6. Conclusión
+
+Las pruebas de caja negra comprueban el comportamiento de TaskFlow desde
+fuera, tanto a través de la aplicación de Flutter como mediante el
+consumo directo de la API con Postman. Los 45 casos cubren el inicio de
+sesión, la gestión de usuarios, proyectos, tareas y subtareas, el
+control de acceso por rol y el manejo de errores y validaciones.
+
+Todos los casos se ejecutaron con el resultado esperado. La aplicación
+responde de forma coherente ante las acciones correctas y muestra avisos
+claros ante las entradas erróneas, y la API devuelve en cada situación
+el código de estado adecuado (200, 400, 401, 403 o 404). El resultado
+confirma que la interacción entre el frontend, el backend y la base de
+datos funciona según los requisitos definidos.

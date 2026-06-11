@@ -1,0 +1,81 @@
+3.4. INFORME DE PRUEBAS DE CAJA NEGRA
+
+Este informe recoge las pruebas de caja negra realizadas sobre TaskFlow.
+A diferencia de las de caja blanca, aquí no se analiza el código por
+dentro, sino el comportamiento del sistema desde fuera: lo que ve el
+usuario en la aplicación y lo que devuelve la API ante cada petición.
+
+Para no alargar el informe se ha seleccionado un conjunto representativo
+de pruebas, centrado en las funciones principales y en las reglas de
+negocio más importantes. Se dividen en dos bloques: pruebas funcionales
+desde la aplicación de Flutter y pruebas de la API con Postman.
+
+
+3.4.1. Entorno y metodología
+
+Las pruebas funcionales se ejecutan a mano sobre la aplicación, con una
+cuenta de administrador y otra de usuario estándar. Las pruebas de API
+se realizan con Postman, enviando peticiones al backend y comprobando el
+código de estado y la respuesta. Se parte de un servidor en
+funcionamiento y de una base de datos con datos de ejemplo.
+
+Cada prueba indica la acción, el resultado esperado y el obtenido. En
+las que requieren evidencia visual se señala dónde insertar la captura.
+
+
+3.4.2. Pruebas funcionales desde la aplicación
+
+  +-------+--------------------------------------------+-----------------------------+----------+
+  | ID    | Descripción                                | Esperado                    | Estado   |
+  +-------+--------------------------------------------+-----------------------------+----------+
+  | CN-01 | Inicio de sesión como administrador        | Acceso al panel de admin    | CORRECTO |
+  | CN-02 | Inicio de sesión como usuario estándar     | Acceso a su pantalla        | CORRECTO |
+  | CN-03 | Crear un usuario (admin)                    | Usuario creado y visible    | CORRECTO |
+  | CN-04 | Crear un proyecto con fechas válidas (admin)| Proyecto creado            | CORRECTO |
+  | CN-05 | Crear una tarea y asignar un usuario (admin)| Tarea creada y asignada    | CORRECTO |
+  | CN-06 | El usuario solo ve sus tareas asignadas     | Solo aparecen las suyas     | CORRECTO |
+  | CN-07 | El usuario cambia el estado de su tarea     | Estado actualizado          | CORRECTO |
+  | CN-08 | Bloqueo al finalizar tarea con subtareas    | Aviso, no se finaliza       | CORRECTO |
+  +-------+--------------------------------------------+-----------------------------+----------+
+
+  [CAPTURA CN-01: Pantalla principal del administrador tras iniciar sesión]
+  [CAPTURA CN-05: Tarea creada con el usuario asignado visible]
+  [CAPTURA CN-06: Listado mostrando únicamente las tareas asignadas al usuario]
+  [CAPTURA CN-08: Aviso al intentar finalizar una tarea con subtareas pendientes]
+
+
+3.4.3. Pruebas de API mediante Postman
+
+Estas peticiones comprueban el backend sin pasar por la interfaz. El
+conjunto elegido cubre los códigos de respuesta más habituales de la
+API: 200, 400, 401, 403 y 404.
+
+  +-------+--------------------------------------------+----------+----------+----------+
+  | ID    | Descripción                                | Esperado | Obtenido | Estado   |
+  +-------+--------------------------------------------+----------+----------+----------+
+  | CN-09 | Login con credenciales válidas             | 200+token| 200+token| CORRECTO |
+  | CN-10 | Login con credenciales incorrectas         |   401    |   401    | CORRECTO |
+  | CN-11 | Petición protegida sin token               |   401    |   401    | CORRECTO |
+  | CN-12 | Ruta de admin con usuario estándar         |   403    |   403    | CORRECTO |
+  | CN-13 | Crear proyecto con fecha fin anterior      |   400    |   400    | CORRECTO |
+  | CN-14 | Obtener un recurso inexistente             |   404    |   404    | CORRECTO |
+  +-------+--------------------------------------------+----------+----------+----------+
+
+  [CAPTURA CN-09: Petición POST /auth/login en Postman con respuesta 200 y token]
+  [CAPTURA CN-12: Petición a una ruta de administrador con usuario estándar y respuesta 403]
+
+
+3.4.4. Conclusión
+
+Las pruebas de caja negra comprueban el comportamiento de TaskFlow desde
+fuera, tanto en la aplicación de Flutter como mediante el consumo de la
+API con Postman. Los 14 casos seleccionados cubren el inicio de sesión,
+la gestión de usuarios, proyectos y tareas, el control de acceso por rol
+y las reglas de negocio principales.
+
+Todos los casos se ejecutaron con el resultado esperado. La aplicación
+responde de forma coherente ante las acciones correctas y muestra avisos
+claros ante las entradas erróneas, y la API devuelve en cada caso el
+código de estado adecuado. El resultado confirma que la interacción
+entre el frontend, el backend y la base de datos funciona según los
+requisitos definidos.

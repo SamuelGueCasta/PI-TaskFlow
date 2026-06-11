@@ -1,0 +1,41 @@
+# Entorno y secretos
+.env
+.env.*
+*.env
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing / cobertura
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.cache/
+
+# Bases de datos locales
+*.sqlite3
+*.db
+
+# Herramientas de IA
+.claude/
+.cursor/
+.aider*
+
+# IDE / editores
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
